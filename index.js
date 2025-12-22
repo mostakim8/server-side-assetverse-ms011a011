@@ -1,18 +1,26 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:5174'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    optionsSuccessStatus: 200 // এটি যোগ করুন
+}));
 app.use(express.json());
 
-// MongoDB Connection
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mongodb.net/?retryWrites=true&w=majority`;
+// MongoDB URI
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@aimodelmanagerdb.du0jjco.mongodb.net/AssetVerseDB?retryWrites=true&w=majority&appName=AIModelManagerDB`;
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -23,43 +31,41 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // কানেক্ট করা (ঐচ্ছিক কিন্তু ভালো প্র্যাকটিস)
-    // await client.connect(); 
-
+    await client.connect(); 
+    
     const db = client.db("AssetVerseDB");
     const usersCollection = db.collection("users");
-    const assetsCollection = db.collection("assets");
-    const requestsCollection = db.collection("requests");
-    const affiliationCollection = db.collection("employeeAffiliations");
-
-    // --- API শুরু ---
-
-    // ১. ইউজার সেভ করার জন্য API (Registration)
+    console.log("Connected successfully to MongoDB");
     app.post('/users', async (req, res) => {
-      const user = req.body;
-      const query = { email: user.email };
-      const existingUser = await usersCollection.findOne(query);
+      try {
+        const user = req.body;
+       
       
-      if (existingUser) {
-        return res.send({ message: 'user already exists', insertedId: null });
+        const query = { email: user.email };
+        const existingUser = await usersCollection.findOne(query);
+        
+        if (existingUser) {
+          
+          return res.send({ message: 'user already exists', insertedId: null });
+        }
+        
+        const result = await usersCollection.insertOne(user);
+       
+        res.send(result);
+      } catch (dbError) {
+        console.error("Database Error:", dbError);
+        res.status(500).send({ message: "Internal Server Error" });
       }
-      
-      const result = await usersCollection.insertOne(user);
-      res.send(result);
     });
 
-    // --- API শেষ ---
-
-    console.log("Successfully connected to MongoDB (AssetVerseDB)!");
-  } catch (error) {
-    console.error("MongoDB Connection Error:", error);
+    console.log("Connected to MongoDB (AssetVerseDB)!");
+  } catch (err) {
+    console.error("Connection Error:", err);
   }
 }
 run().catch(console.dir);
 
-app.get('/', (req, res) => {
-  res.send('AssetVerse Server is running');
-});
+app.get('/', (req, res) => res.send('AssetVerse Server Running'));
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
