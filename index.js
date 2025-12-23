@@ -14,6 +14,7 @@ app.use(cors({
       'http://localhost:5174',  
       'https://inspiring-medovik-fc9331.netlify.app'
     ],
+    
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 200,
