@@ -11,8 +11,8 @@ const port = process.env.PORT || 5001;
 app.use(cors({
     origin: [
       'http://localhost:5173', 
-      'http://localhost:5174',
-      'https://inspiring-medovik-fc9331.netlify.app'
+      'http://localhost:5174',  
+      ' http://inspiring-medovik-fc9331.netlify.app'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
